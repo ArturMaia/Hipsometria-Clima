@@ -1,0 +1,100 @@
+---
+title: "Clima e Hipsometria"
+author: "Artur Maia"
+date: "2024-05-08"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## *Introdução:*
+
+Para compreender o clima de um determinado lugar outros aspectos são correlacionados como por exemplo: temperatura e hipsometria do local em questão, diante dessas informações esse projeto tem como intenção fazer uma análise do território brasileiro.
+
+### Bibliotecas
+```{r message=FALSE, warning=FALSE}
+library(ggplot2)
+library(raster)
+library(geobr)
+library(RColorBrewer)
+library(dplyr)
+library(rnaturalearth)
+library(geodata)
+library(elevatr)
+```
+### Arquivos para mapas
+```{r message=FALSE, warning=FALSE}
+#arquivos raster
+clim<-getData('worldclim', var='bio', res=10)
+clima<-clim$bio1/10
+terra<-getData('worldclim', var='alt', res=10)
+#arquivos shapefile
+#br<-read_state(code_state = "all",year = 2010)
+#cont<-ne_countries(continent  = 'sOUTH AMERICA' , returnclass = 'sf')
+```
+```{r include=FALSE}
+br<-read_state(code_state = "all",year = 2010)
+cont<-ne_countries(continent  = 'sOUTH AMERICA' , returnclass = 'sf')
+```
+### Paleta de cores para o mapa
+```{r message=FALSE, warning=FALSE}
+climacor <- brewer.pal(11, "RdYlBu")
+climacor <- colorRampPalette(climacor)(50)
+climacor <- rev(climacor)
+coresolo <- brewer.pal(11, "BrBG")
+coresolo <- colorRampPalette(coresolo)(50)
+```
+## MAPAS CLIMÁTICOS
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+plot(clima,col=climacor,
+     legend.width= 1.5,  axis.args=list(cex.axis=0.6),
+     legend.args=list(text="temp(ºC)",
+     side=3, line=0.5, cex=0.8))+title("Média climática mundial")
+```
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+sa<-crop(clima,cont)
+cores <- brewer.pal(11, "RdYlBu")
+cores <- colorRampPalette(cores)(50)
+cores <- rev(cores)
+plot(sa,col=cores,
+     legend.width= 1.5,  axis.args=list(cex.axis=0.6),
+     legend.args=list(text="temp(ºC)",side=3, line=0.5, cex=0.8))+
+  plot(cont$geom,add=T)+
+  title("Média climática da América do Sul")
+```
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+recortado2<-crop(clima,br)
+brasil2<-mask(recortado2,br)
+plot(brasil2,col=climacor,
+     legend.width= 1.5,  axis.args=list(cex.axis=0.6),
+     legend.args=list(text="temp(ºC)",side=3, line=0.5, cex=0.8))+
+  plot(br$geom,add=T)+
+  title('Clima do brasil')
+```
+## MAPAS HIPSOMÉTRICOS
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+plot(terra,col=coresolo,
+     legend.width= 1.5,  axis.args=list(cex.axis=0.6),
+     legend.args=list(text="Altitude (mt)",
+      side=3, line=0.5, cex=0.8))+title('Hipsometria mundial')
+```
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+sam<-crop(terra,cont)
+plot(sam,col=coresolo,
+     legend.width= 1.5,  axis.args=list(cex.axis=0.6),
+     legend.args=list(text="Altitude (mt)",
+     side=3, line=0.5, cex=0.8))+
+  plot(cont$geom,add=T)+title('Hipsometria da América do Sul')
+```
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+recortado<-crop(terra,br)
+brasil<-mask(recortado,br)
+plot(brasil,col=coresolo,
+     legend.width= 1.5,  axis.args=list(cex.axis=0.6),
+     legend.args=list(text="Altitude (mt)",side=3, line=0.5, cex=0.8))+
+  plot(br$geom,add=T)+
+  title('Hipsometria do brasil')
+```
+
